@@ -10,193 +10,113 @@ public class wfm {
 	public ArrayList<atom> F_Pi;
 	public ArrayList<atom> A;
 	
-	public wfm (int numAtoms) {
-		A = new ArrayList<atom>(numAtoms);
-		T_Pi = new ArrayList<atom>(numAtoms);
-		T_Pi = new ArrayList<atom>(numAtoms);
+	public ArrayList<ArrayList<ArrayList<atom>>> definiteClauseList;
+	
+	public wfm () {
+		A = new ArrayList<atom>();
+		T_Pi = new ArrayList<atom>();
+		F_Pi = new ArrayList<atom>();
+		definiteClauseList = new ArrayList<ArrayList<ArrayList<atom>>>();
 	}
 	
-	/*
-	 * The purpose of this method is to check the format of the lists of
-	 * the positive and negative literals in each definite clause.
-	 */
-	
-	private void addToAtomList(atom a, int whichList) {
-		/*
-		 * whichList will tell you whether the atom needs to be added to:
-		 * 1)	A (during the initial reading of the problem)
-		 * 2)	T_Pi (when the atom is determined to be true)
-		 * 3)	F_Pi (when the atom is determined to be false)
-		 */
-		switch (whichList) {
-			case 1: this.A.add(a);
-			case 2: this.T_Pi.add(a);
-			case 3: this.F_Pi.add(a);
-		}
-	}
-	
-	private int nextAvailIndex(int i) {
-		/*
-		 * Iterate through the 
-		 */
-		return 0;
-	}
-
-	private void checkBodyFormat(Scanner sc, int whatPartOfDC) throws IncorrectInputException  {
-		/*
-		 * Need to make sure that:
-		 * 1)	'[[' doesn't happen except when in the head (when whatPartOfDC == 1)
-		 * 2)	']]' doesn't happen, except when in the negative atom list (when whatPartOfDC == 3).
-		 * 3)	neither '[ ,' nor '[,' happens.
-		 * 4)	neither ', ]' nor ',]' happens.
-		 * 5)	neither ',,' nor ', ,' happens.
-		 */
-		
-	}
-	
-	/* 
-	 * Initially implemented for use with just plain old linear arrays; maybe a priority queue based on
-	 * the number of occurrences in the head of a rule and the number of occurrences in the body would
-	 * be nice!
-	 */
-	private int searchForAtom (String atomName, int whichArray) {
+	private boolean searchForAtom (atom dummyAtom, int whichArray) {
 		switch (whichArray) {
-		/*
-		 * should i make some kind of overloaded equals method which allows
-		 * me to compare the string atomName to the name field of each object?
-		 * 
-		 */
-			case 1: return this.A.indexOf(atomName); // how do I get it to return the atom object whose name is atomName?
-			case 2: return this.T_Pi.indexOf(atomName);
-			case 3: return this.F_Pi.indexOf(atomName);
-			default: return -1;
+			case 1: return this.A.contains(dummyAtom);
+			case 2: return this.T_Pi.contains(dummyAtom);
+			case 3: return this.F_Pi.contains(dummyAtom);
+			default: return false;
 		}
 	}
 	
 	private void readProblem(Scanner sc) throws IncorrectInputException {
-		/*
-		 * whatPartOfDC = 1 when you're dealing with the head, 2 if you're dealing
-		 * with the positive atoms, and 3 if you're dealing with the negative atoms.
-		 */
-		int whatPartOfDC = 1;
-		int indexOfAtom;
+		boolean doesAtomExist = false;
+		int whatPartOfDC = 1; // whatPartOfDC takes values 1 (head) 2 (positive atoms) and 3 (negative atoms)
+		int defClauseCount = 0;
 		String scNextLine;
-		while (sc.hasNext()) {
-			scNextLine = sc.nextLine(); // dummy variable to allow "peeking" so as to act on the input.
-			String[] scNextLineArray = scNextLine.split(" ");
-			for (int i = 0; i < scNextLineArray.length; i++) {
-				if (whatPartOfDC == 1) {
-					if (scNextLineArray[i].equals("[")) {
-						if (scNextLineArray[i+1].equals("[")) {
-							throw new IncorrectInputException("Incorrect input; cannot start a definite clause with '[['!");
-						}
-						else if (scNextLineArray[i+1].equals(",")) {
-							throw new IncorrectInputException("Incorrect input; cannot have empty head of definite clause!");
-						}
-						else if (scNextLineArray[i+1].equals("#")) {
-							throw new IncorrectInputException("Incorrect input; that's not the right place for a comment!");
-						}
-						/*
-						 * If the next token to occur is ']', we're okay with that, because that is the empty
-						 * formula, which is vacuously true. So there are really no other special cases to consider.
-						 */
-						else {
-							/* 
-							 * Search through list A of atoms to see if this atom exists already. If not, add
-							 * the atom to the array. If so, make sure it is mentioned that the atom appears in
-							 * the head of a definite clause.
-							 */
-							indexOfAtom = searchForAtom(scNextLineArray[i], 1);
-							if (indexOfAtom == -1) {
-								addToAtomList(new atom(scNextLineArray[i], -1, true,false), 1);
-							}
-							else {
-								/*
-								 * Change boolean appearsInHeadOfDC to true without changing appearsInBodyOfDC.
-								 */
-								this.A.get(indexOfAtom).appearsInHeadOfDC = true;
-							}
-							whatPartOfDC++;
-						}
-					}
-					else {
-						throw new IncorrectInputException("Incorrect input; must denote start of definite clause with '['!");
-					}
-				}
-				else if (whatPartOfDC == 2) {
-					
-				}
-				else if (whatPartOfDC == 3) {
-					
-					
-					/*
-					 * Once '#' is reached, Scanner allows you to go to the next line of input.
-					 */
-					if (sc.next().equals("#")) {
-						whatPartOfDC = 1;
-						/*
-						 * Leave the for loop which is iterating from the current line of 
-						 * the file (in the form of the String array) to enter the next 
-						 * iteration of the while loop.
-						 */
-						break;
-					}
-				}
-			}	
-		}
+		String[] tokens;
+		ArrayList<ArrayList<atom>> dummyDC = new ArrayList<ArrayList<atom>>();
+		ArrayList<atom> dummyAtomGroup = new ArrayList<atom>();
+		atom dummyAtom;
 		
-		
-		/*int whatPartOfDC = 1;
 		while (sc.hasNext()) {
-			if (whatPartOfDC == 1) {
-				if (sc.next().equals("[")) {
-					if (sc.next().equals("[")) {
-						throw new IncorrectInputException("Incorrect input!");
-					}
-					else {
-						
-					}
+			scNextLine = sc.nextLine();
+			if (scNextLine.contains("#")){
+				if (scNextLine.indexOf("#") == 0) {
+					scNextLine = ""; // I AM CHOOSING THE BEHAVIOUR TO IGNORE EMPTY DEFINITE CLAUSES IN THE KB (otherwise, automatically unsat!)
 				}
-				if (sc.next().equals("[")) {
-					whatPartOfDC++;
-				}
-			}
-			else if (whatPartOfDC == 2) {
-				if (sc.next().equals("[")) {
-					if (sc.next().equals("[")) {
-						throw new IncorrectInputException("Incorrect input!");
-					}
-					else {
-						
-					}
-				}
-				if (sc.next().equals("[")) {
-					whatPartOfDC++;
-				}
-			}
-			else if (whatPartOfDC == 3) {
-				if (sc.next().equals("[")) {
-					if (sc.next().equals("[")) {
-						throw new IncorrectInputException("Incorrect input!");
-					}
-					else {
-						
-					}
+				else{
+					scNextLine = scNextLine.substring(0, scNextLine.indexOf("#") - 1);
 				}
 				whatPartOfDC = 1;
-				if (sc.next().equals(" #")) {
-						
+				defClauseCount++;
+			}
+			
+			tokens = scNextLine.split(" ");
+			for (int i = 0; i < tokens.length; i++) {
+				if (tokens[i].equals(",")) {
+					dummyDC.add(dummyAtomGroup);
+					dummyAtomGroup = new ArrayList<atom>();
+					whatPartOfDC++;
+				}
+				else if (tokens[i].equals("EMPTY")) {
+					dummyAtomGroup.add(new atom(null));
+				}
+				else {
+					if (whatPartOfDC == 1) {
+						dummyAtom = new atom(tokens[i],-1, true);
+						doesAtomExist = searchForAtom(dummyAtom, 1);
+						if (!doesAtomExist) { 
+							this.A.add(dummyAtom);
+						}
+						dummyAtomGroup.add(dummyAtom);
+					}
+					else {
+						dummyAtom = new atom(tokens[i]);
+						doesAtomExist = searchForAtom(dummyAtom, 1);
+						if (!doesAtomExist) {
+							this.A.add(dummyAtom);
+						}
+						dummyAtomGroup.add(dummyAtom);
+					}
 				}
 			}
-		}*/
+			this.definiteClauseList.add(dummyDC);
+			dummyDC = new ArrayList<ArrayList<atom>>();
+			
+		}
+	}
+	
+	private void printAtomLists(boolean printAToo) {
+		if (printAToo){
+			if (this.A.isEmpty()) {
+				System.out.println("A is empty.");
+			}
+			else {
+				String atomListAasString = A.toString();
+				System.out.println("Atom list A:" + atomListAasString);
+			}
+		}
 		
+		if (T_Pi.isEmpty()) {
+			System.out.println("T_Pi is empty.");
+		}
+		else {
+			String atomListT_PiasString = T_Pi.toString();
+			System.out.println("T_Pi:" + atomListT_PiasString);
+		}
 		
+		if (F_Pi.isEmpty()) {
+			System.out.println("F_Pi is empty.");
+		}
+		else {
+			String atomListF_PiasString = F_Pi.toString();
+			System.out.println("F_Pi" + atomListF_PiasString);
+		}
 	}
 	
 	public static void main (String[] args){ 
 		/*
 		 * Need to:
-		 * 1) read in the program
 		 * 2) initialize the lists $T_\Pi$ and $F_\Pi$
 		 * 		- 	To be considered: what kind of datastructure do we want to use for 
 		 * 			$T_\Pi$ and $F_\Pi$? What Features are desired?
@@ -212,15 +132,11 @@ public class wfm {
 		 * 		ii) How do we deal with set difference?
 		 */
 		
-		/*
-		 * Read in the program.
-		 */
-		
-		wfm program = new wfm(20);
+		wfm program = new wfm();
 		try {
 			Scanner sc = new Scanner(new File(args[0]));
-			//sc.useDelimiter(",\\s");
 			program.readProblem(sc);
+			program.printAtomLists(true);
 		} 
 		catch (FileNotFoundException e) {
 			System.out.println("File '"+args[0]+"' not found!");
