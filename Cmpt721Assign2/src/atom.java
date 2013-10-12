@@ -19,6 +19,11 @@ public class atom {
 	 */
 	public atom (String name, int truthValue, boolean appearsInHeadOfDC) {
 		this.name = name;
+
+		/*
+		 * Do I really need truthValue, since the truth value will
+		 * be indicated by the atom's presence in either T_Pi or F_Pi...
+		 */
 		this.truthValue = truthValue;
 		this.appearsInHeadOfDC = appearsInHeadOfDC; // if an atom doesn't appear in the head, by CK, must be false
 		//this.appearsInBodyOfDC = appearsInBodyOfDC;
