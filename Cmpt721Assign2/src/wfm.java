@@ -19,13 +19,8 @@ public class wfm {
 		definiteClauseList = new ArrayList<ArrayList<ArrayList<atom>>>();
 	}
 	
-	private boolean searchForAtom (atom dummyAtom, int whichArray) {
-		switch (whichArray) {
-			case 1: return this.A.contains(dummyAtom);
-			case 2: return this.T_Pi.contains(dummyAtom);
-			case 3: return this.F_Pi.contains(dummyAtom);
-			default: return false;
-		}
+	private boolean searchForAtom (atom dummyAtom, ArrayList<atom> arrayToSearch) {
+		return arrayToSearch.contains(dummyAtom);
 	}
 	
 	private void readProblem(Scanner sc) throws IncorrectInputException {
@@ -62,7 +57,7 @@ public class wfm {
 				else {
 					if (whatPartOfDC == 1) {
 						dummyAtom = new atom(tokens[i],-1, true);
-						doesAtomExist = searchForAtom(dummyAtom, 1);
+						doesAtomExist = searchForAtom(dummyAtom, this.A);
 						if (!doesAtomExist) { 
 							this.A.add(dummyAtom);
 						}
@@ -70,7 +65,7 @@ public class wfm {
 					}
 					else {
 						dummyAtom = new atom(tokens[i]);
-						doesAtomExist = searchForAtom(dummyAtom, 1);
+						doesAtomExist = searchForAtom(dummyAtom, this.A);
 						if (!doesAtomExist) {
 							this.A.add(dummyAtom);
 						}
@@ -86,50 +81,123 @@ public class wfm {
 
 	private void solve() {
 		/*
-		 * 	Loop until there are no changes to T or F:
-		 *	1. 	(a) Run the bottom up procedure on those rules that don’t contain a
-		 *	negated atom in the body.
-		 *		(b) Call the set of newly-derived atoms T^{new} . (These atoms must be true.)
-		 *		(c) Add these atoms to T.
-		 *		(d) “Compile” the atoms in T^{new} into the set of rules:
-		 *			For a \in T^{new} ,
-		 *				– delete any rule with a in the head or ∼ a in the body,
-		 *				– remove any occurrences of a from the remaining rules.
-		 *	2. 	(a) Run the bottom up procedure on the rule set, but ignoring all negated
-		 *	atoms.
-		 *		(b) Call this set T^{poss}. (These atoms might potentially become true later.)
-		 *		(c) Let F^{new} be those atoms whose truth value is “unknown” and that don’t
-		 *	appear in T^{poss}. (The atoms in F^{new} are those that cannot possibly be
-		 *	true, and so are (now) known to be false.)
-		 *		(d) Add the atoms in F^{new} to F.
-		 *		(e) “Compile” the atoms in F^{new} into the set of rules:
-		 *			For a \in F^{new},
-		 *				– delete any rule with a in the head or a in the body,
-		 *				– remove any occurrences of ∼ a from the remaining rules.
+		 * 	Loop until there are no changes to T or F:		
 		 */
-		
 		ArrayList<atom> Tnew = new ArrayList<atom>();
 		ArrayList<atom> Fnew = new ArrayList<atom>();
+		ArrayList<atom> Tposs;
+		
+		do {
+			/*
+			 * 1. 	(a) Run the bottom up procedure on those rules that don’t contain a
+			 *	negated atom in the body.
+			 *		(b) Call the set of newly-derived atoms T^{new} . (These atoms must be true.)
+			 */
+			Tnew = bottomUp();
+				
+			/*
+			 * 		(c) Add these atoms to T.
+			 */
+			addToList (Tnew, this.T_Pi);
+			
+			/*
+			 * 		(d) “Compile” the atoms in T^{new} into the set of rules:
+			 *			For a \in T^{new} ,
+			 *				– delete any rule with a in the head or \tilde a in the body,
+			 *				– remove any occurrences of a from the remaining rules.
+			 */
+			compileIntoRules(Tnew, this.T_Pi);
+			
+			/*
+			 * 2. 	(a) Run the bottom up procedure on the rule set, but ignoring all negated
+			 *	atoms.
+			 *		(b) Call this set T^{poss}. (These atoms might potentially become true later.)
+			 */
+			Tposs = bottomUp();
+			
+			/*
+			 * 		(c) Let F^{new} be those atoms whose truth value is “unknown” and that don’t
+			 *			appear in T^{poss}. (The atoms in F^{new} are those that cannot possibly be
+			 *			true, and so are (now) known to be false.)
+			 */
+			Fnew = arrayListSetDiff(this.A, Tposs);
+			
+			/*
+			 * 		(d) Add the atoms in F^{new} to F.
+			 */
+			addToList(Fnew, this.F_Pi);
+			
+			/*
+			 * 		(e) “Compile” the atoms in F^{new} into the set of rules:
+			 *			For a \in F^{new},
+			 *				– delete any rule with a in the head or a in the body,
+			 *				– remove any occurrences of ∼ a from the remaining rules.
+			 */
+			compileIntoRules(Fnew, this.F_Pi);
+			
+		} while (!(Tnew.equals(this.T_Pi) && Fnew.equals(this.F_Pi)));	
+	}
+	
+	
+	private ArrayList<atom> arrayListSetDiff(ArrayList<atom> A, ArrayList<atom> B) {
+		ArrayList<atom> setDiff = new ArrayList<atom>();
+		for (int i = 0; i < B.size(); i++) {
+			if (A.contains(B.get(i))) {
+				continue;
+			}
+			else {
+				if (setDiff.contains(B.get(i))) continue;
+				else setDiff.add(B.get(i));
+			}
+		}
+		return setDiff;
+	}
+
+	private void addToList(ArrayList<atom> listOfAtomsToAdd, ArrayList<atom> existingAtomList) {
 		atom dummyAtom = new atom(null);
 		boolean doesAtomExist = false;
-
-		while (true) {
-			// Make sure atom hasn't yet been added to T_Pi and set its truthValue to true.
-			for (int i = 0; i < Tnew.size(); i++) {
-				dummyAtom = Tnew.get(i);
-				doesAtomExist = searchForAtom(dummyAtom, 2); // search in T_Pi
-				if (!doesAtomExist) {
-					this.T_Pi.add(dummyAtom);
-					
-				}
-			}
-			//	Loop until there are no changes to T or F:
-			if (Tnew.equals(this.T_Pi) && Fnew.equals(this.F_Pi)) {
-				break;
+		for (int i = 0; i < listOfAtomsToAdd.size(); i++) {
+			dummyAtom = listOfAtomsToAdd.get(i);
+			doesAtomExist = searchForAtom(dummyAtom, existingAtomList); // search in T_Pi
+			if (!doesAtomExist) {
+				existingAtomList.add(dummyAtom);
 			}
 		}
 	}
+
+	/*
+	 * C := {};
+	 *		repeat
+	 *			either
+	 *				choose r \in A such that
+	 *					r is 'h \Leftarrow b_1 \wedge \ldots \wedge b_m'
+	 *					b_i \in C for all i and
+	 *					h \neg \in C
+	 *				C := C \\union {h}
+	 *			or
+	 *				choose h such that for every rule
+	 *					h \Leftarrow b_1 \wedge \ldots \wedge b_m
+	 *						either for some b_i we have \tilde \b_i \in C
+	 *						or some b_i = \tilde g and g \in C
+	 *				C := C \\union {\tilde h}
+	 *		until 
+	 *			no more choices
+	 */
+	private ArrayList<atom> bottomUp () {
+		ArrayList<atom> consequences = new ArrayList<atom>();
+		/*while (true) {
+			// go through, looking at dummyAtom.appearsInHeadOfDC is true, and then see if all the atoms in the ArrayList<
+			
+		}*/
+		return consequences;
+		
+	}
 	
+	private void compileIntoRules(ArrayList<atom> newAtoms, ArrayList<atom> assignedAtoms) {
+		
+		
+	}
+
 	@SuppressWarnings("unused")
 	private void printAtomLists(boolean printAToo) {
 		if (printAToo){
