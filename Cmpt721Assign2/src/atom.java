@@ -7,6 +7,9 @@ public class atom {
 	public boolean appearsInHeadOfDC;
 	public boolean appearsInBodyOfDC;
 	
+	public atom () {
+		this.name = null;
+	}
 	/*
 	 * Initializes the atom object with its name in the program.
 	 */
@@ -33,8 +36,7 @@ public class atom {
 		return this.name;
 	}
 	
-	@Override
-	public boolean equals(Object atomToCompareTo) { // Right!
+	@Override public boolean equals(Object atomToCompareTo) { // Right!
 	    if (atomToCompareTo == null) {
 	        return false;
 	    }
