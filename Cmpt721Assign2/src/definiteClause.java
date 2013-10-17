@@ -8,19 +8,26 @@ public class definiteClause {
 	ArrayList posAtoms;
 	ArrayList negAtoms;
 	
-	public definiteClause() {
-		this.head = new atom(EMPTY);
-		this.posAtoms = new ArrayList<atom>();
-		this.negAtoms = new ArrayList<atom>();
+	public definiteClause(String tokenString) {
+		String[] tokens = tokenString.trim().split(",");
+		
+		this.head = new atom(tokens[0]);
+		this.posAtoms = addToAtomGroup(tokens[1].trim().split(" "));
+		this.negAtoms = addToAtomGroup(tokens[2].trim().split(" "));
 	}
-	public definiteClause (atom head) {
-		this.head = head;
-		this.posAtoms = new ArrayList<atom>();
-		this.negAtoms = new ArrayList<atom>();
-	}
-	public definiteClause (atom head, ArrayList posAtoms, ArrayList negAtoms) {
-		this.head = head;
-		this.posAtoms = posAtoms;
-		this.negAtoms = negAtoms;
+	
+	private ArrayList<atom> addToAtomGroup (String[] tokens) {
+		ArrayList<atom> atomGroup = new ArrayList<atom>();
+		atom dummyAtom;
+		
+		for (int i = 0; i < tokens.length; i++) {
+			if (!tokens[i].equals("EMPTY")) {
+				dummyAtom = new atom(tokens[i]);
+				if (!atomGroup.contains(dummyAtom)) {
+					atomGroup.add(dummyAtom);
+				}
+			}
+		}
+		return atomGroup;
 	}
 }

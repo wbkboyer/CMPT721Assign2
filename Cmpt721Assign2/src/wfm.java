@@ -7,7 +7,6 @@ import java.util.Scanner;
 
 
 public class wfm {
-	final String EMPTY = "EMPTY";
 	public ArrayList<atom> T_Pi;
 	public ArrayList<atom> F_Pi;
 	public ArrayList<atom> A;
@@ -40,34 +39,14 @@ public class wfm {
 					scNextLine = scNextLine.substring(0, scNextLine.indexOf("#") - 1).trim();
 				}
 			}
-			
-			tokens = scNextLine.trim().split(",");
-			
-			dummyDC = new definiteClause (new atom(tokens[0]));
-			dummyDC.posAtoms = addToAtomGroup(tokens[1].trim().split(" "));
-			dummyDC.negAtoms = addToAtomGroup(tokens[2].trim().split(" "));
-			
+			dummyDC = new definiteClause(scNextLine);
+			this.definiteClauseList.add(dummyDC);
 			this.A.addAll(dummyDC.posAtoms);
 			this.A.addAll(dummyDC.negAtoms);
-			
-			this.definiteClauseList.add(dummyDC);			
 		}
 	}
 	
-	private ArrayList<atom> addToAtomGroup (String[] tokens) {
-		ArrayList<atom> atomGroup = new ArrayList<atom>();
-		atom dummyAtom;
-		
-		for (int i = 0; i < tokens.length; i++) {
-			if (!tokens[i].equals(EMPTY)) {
-				dummyAtom = new atom(tokens[i]);
-				if (!searchForAtom(dummyAtom, atomGroup)) {
-					atomGroup.add(dummyAtom);
-				}
-			}
-		}
-		return atomGroup;
-	}
+	
 
 	private void solve() {
 		/*
@@ -175,10 +154,11 @@ public class wfm {
 	 */
 	private ArrayList<atom> bottomUp () {
 		ArrayList<atom> consequences = new ArrayList<atom>();
-		/*while (true) {
+		/*ArrayList<atom> newConsequences = new ArrayList<atom>();
+		do {
 			// go through, looking at dummyAtom.appearsInHeadOfDC is true, and then see if all the atoms in the ArrayList<
 			
-		}*/
+		} while (!consequences.equals(newConsequences));*/
 		return consequences;
 		
 	}
