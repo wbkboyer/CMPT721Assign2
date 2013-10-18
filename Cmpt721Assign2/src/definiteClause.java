@@ -1,7 +1,6 @@
 import java.util.ArrayList;
 import java.util.Set;
 
-
 public class definiteClause {
 	private static final String EMPTY = null;
 	atom head;
@@ -11,7 +10,9 @@ public class definiteClause {
 	public definiteClause(String tokenString) {
 		String[] tokens = tokenString.trim().split(",");
 		
-		this.head = new atom(tokens[0]);
+		this.head = new atom(tokens[0].trim());
+		this.head.appearsInHeadOfDC = true;
+		
 		this.posAtoms = addToAtomGroup(tokens[1].trim().split(" "));
 		this.negAtoms = addToAtomGroup(tokens[2].trim().split(" "));
 	}
@@ -29,5 +30,9 @@ public class definiteClause {
 			}
 		}
 		return atomGroup;
+	}
+	
+	public void printDC() {
+		System.out.println("[" + this.head + ", " + this.posAtoms + " , " + this.negAtoms + "]");
 	}
 }

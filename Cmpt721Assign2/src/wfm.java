@@ -19,16 +19,12 @@ public class wfm {
 		F_Pi = new ArrayList<atom>();
 		definiteClauseList = new ArrayList<definiteClause>();
 	}
-	
-	private boolean searchForAtom (atom dummyAtom, ArrayList<atom> arrayToSearch) {
-		return arrayToSearch.contains(dummyAtom);
-	}
-	
+		
 	private void readProblem(Scanner sc) throws IncorrectInputException {
 		String scNextLine;
 		String[] tokens;		
 		definiteClause dummyDC;
-		
+		System.out.println("Input Problem:");
 		while (sc.hasNext()) {
 			scNextLine = sc.nextLine();
 			if (scNextLine.contains("#")){
@@ -40,10 +36,12 @@ public class wfm {
 				}
 			}
 			dummyDC = new definiteClause(scNextLine);
+			dummyDC.printDC();
 			this.definiteClauseList.add(dummyDC);
 			this.A.addAll(dummyDC.posAtoms);
 			this.A.addAll(dummyDC.negAtoms);
 		}
+		System.out.println();
 	}
 	
 	
@@ -127,8 +125,7 @@ public class wfm {
 		boolean doesAtomExist = false;
 		for (int i = 0; i < listOfAtomsToAdd.size(); i++) {
 			dummyAtom = listOfAtomsToAdd.get(i);
-			doesAtomExist = searchForAtom(dummyAtom, existingAtomList); // search in T_Pi
-			if (!doesAtomExist) {
+			if (!existingAtomList.contains(dummyAtom)) {
 				existingAtomList.add(dummyAtom);
 			}
 		}
