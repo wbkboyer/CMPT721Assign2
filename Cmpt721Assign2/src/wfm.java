@@ -38,21 +38,25 @@ public class wfm {
 			dummyDC = new definiteClause(scNextLine);
 			dummyDC.printDC();
 			this.definiteClauseList.add(dummyDC);
-			this.A.addAll(dummyDC.posAtoms);
-			this.A.addAll(dummyDC.negAtoms);
+			if (!this.A.contains(dummyDC.head)) {
+				this.A.add(dummyDC.head);
+			}
+			addToList(dummyDC.posAtoms, this.A);
+			addToList(dummyDC.negAtoms, this.A);
 		}
 		System.out.println();
 	}
 	
-	
-
 	private void solve() {
 		/*
 		 * 	Loop until there are no changes to T or F:		
 		 */
-		ArrayList<atom> Tnew = new ArrayList<atom>();
+		ArrayList<atom> Tnew;
 		ArrayList<atom> Fnew = new ArrayList<atom>();
 		ArrayList<atom> Tposs;
+		ArrayList<atom> union = new ArrayList<atom>();
+		ArrayList<definiteClause> dummyDCList = new ArrayList<definiteClause>();
+		definiteClause clauseToConsider;
 		
 		do {
 			/*
@@ -60,7 +64,13 @@ public class wfm {
 			 *	negated atom in the body.
 			 *		(b) Call the set of newly-derived atoms T^{new} . (These atoms must be true.)
 			 */
-			Tnew = bottomUp();
+			for (int i = 0; i < this.definiteClauseList.size(); i++) {
+				clauseToConsider = this.definiteClauseList.get(i);
+				if (clauseToConsider.negAtoms.isEmpty()) {
+					dummyDCList.add(clauseToConsider);
+				}
+			}
+			Tnew = bottomUp(dummyDCList);// need to ignore all dc's including negative atoms in body
 				
 			/*
 			 * 		(c) Add these atoms to T.
@@ -73,34 +83,64 @@ public class wfm {
 			 *				– delete any rule with a in the head or \tilde a in the body,
 			 *				– remove any occurrences of a from the remaining rules.
 			 */
-			compileIntoRules(Tnew, this.T_Pi);
+			for (int i = 0; i < dummyDCList.size(); i++) {
+				if (Tnew.contains(dummyDCList.get(i).head)) {
+					dummyDCList.remove(i);
+				}
+				else if (dummyDCList.get(i).negAtoms.containsAll(Tnew)) {
+					dummyDCList.get(i).negAtoms.removeAll(Tnew);
+				}
+			}
+			for (int i = 0; i < dummyDCList.size(); i++) {
+				for (int j = 0; j < Tnew.size(); j++) {
+					dummyDCList.get(i).posAtoms.remove(Tnew.get(j));
+				}
+			}
 			
-			/*
-			 * 2. 	(a) Run the bottom up procedure on the rule set, but ignoring all negated
-			 *	atoms.
-			 *		(b) Call this set T^{poss}. (These atoms might potentially become true later.)
-			 */
-			Tposs = bottomUp();
-			
-			/*
-			 * 		(c) Let F^{new} be those atoms whose truth value is “unknown” and that don’t
-			 *			appear in T^{poss}. (The atoms in F^{new} are those that cannot possibly be
-			 *			true, and so are (now) known to be false.)
-			 */
-			Fnew = arrayListSetDiff(this.A, Tposs);
-			
-			/*
-			 * 		(d) Add the atoms in F^{new} to F.
-			 */
-			addToList(Fnew, this.F_Pi);
-			
-			/*
-			 * 		(e) “Compile” the atoms in F^{new} into the set of rules:
-			 *			For a \in F^{new},
-			 *				– delete any rule with a in the head or a in the body,
-			 *				– remove any occurrences of ~ a from the remaining rules.
-			 */
-			compileIntoRules(Fnew, this.F_Pi);
+			if (!definiteClauseList.isEmpty()) {
+				/*
+				 * 2. 	(a) Run the bottom up procedure on the rule set, but ignoring all negated
+				 *	atoms.
+				 *		(b) Call this set T^{poss}. (These atoms might potentially become true later.)
+				 */
+				for (int i = 0; i < dummyDCList.size(); i++) {
+					dummyDCList.get(i).negAtoms = new ArrayList<atom>();
+				}
+				Tposs = bottomUp(dummyDCList);
+				
+				/*
+				 * 		(c) Let F^{new} be those atoms whose truth value is “unknown” and that don’t
+				 *			appear in T^{poss}. (The atoms in F^{new} are those that cannot possibly be
+				 *			true, and so are (now) known to be false.)
+				 */
+				union.addAll(Tnew);
+				union.addAll(Tposs);
+				Fnew = arrayListSetDiff(this.A, union);
+				
+				/*
+				 * 		(d) Add the atoms in F^{new} to F.
+				 */
+				addToList(Fnew, this.F_Pi);
+				
+				/*
+				 * 		(e) “Compile” the atoms in F^{new} into the set of rules:
+				 *			For a \in F^{new},
+				 *				– delete any rule with a in the head or a in the body,
+				 *				– remove any occurrences of ~ a from the remaining rules.
+				 */
+				for (int i = 0; i < dummyDCList.size(); i++) {
+					if (Fnew.contains(dummyDCList.get(i).head)) {
+						dummyDCList.remove(i);
+					}
+					dummyDCList.get(i).posAtoms.removeAll(Fnew);
+					dummyDCList.get(i).negAtoms.removeAll(Fnew);
+				}
+				for (int i = 0; i < dummyDCList.size(); i++) {
+					for (int j = 0; j < Fnew.size(); j++) {
+						dummyDCList.get(i).posAtoms.remove(Fnew.get(j));
+					}
+				}
+			}
 			printAtomLists(false);
 		} while (!(arrayListSetDiff(Tnew, this.T_Pi).isEmpty() && arrayListSetDiff(Fnew, this.F_Pi).isEmpty()));
 	}
@@ -119,10 +159,9 @@ public class wfm {
 		}
 		return setDiff;
 	}
-
+	
 	private void addToList(ArrayList<atom> listOfAtomsToAdd, ArrayList<atom> existingAtomList) {
 		atom dummyAtom = new atom(null);
-		boolean doesAtomExist = false;
 		for (int i = 0; i < listOfAtomsToAdd.size(); i++) {
 			dummyAtom = listOfAtomsToAdd.get(i);
 			if (!existingAtomList.contains(dummyAtom)) {
@@ -133,36 +172,40 @@ public class wfm {
 
 	/*
 	 * C := {};
-	 *		repeat
-	 *			either
-	 *				choose r \in A such that
-	 *					r is 'h \Leftarrow b_1 \wedge \ldots \wedge b_m'
-	 *					b_i \in C for all i and
-	 *					h \neg \in C
-	 *				C := C \\union {h}
-	 *			or
-	 *				choose h such that for every rule
-	 *					h \Leftarrow b_1 \wedge \ldots \wedge b_m
-	 *						either for some b_i we have \tilde \b_i \in C
-	 *						or some b_i = \tilde g and g \in C
-	 *				C := C \\union {\tilde h}
-	 *		until 
-	 *			no more choices
+	 * repeat
+	 * 		choose r \in A (the set of rules) such that
+	 * 			r is 'h \Leftarrow b_1 \wedge \ldots \wedge b_m
+	 * 			b_i \in C for all i, and
+	 * 			h \neg \in C;
+	 * 		C := C \cup {h}
+	 * until no more choices
 	 */
-	private ArrayList<atom> bottomUp () {
-		ArrayList<atom> consequences = new ArrayList<atom>();
-		/*ArrayList<atom> newConsequences = new ArrayList<atom>();
-		do {
-			// go through, looking at dummyAtom.appearsInHeadOfDC is true, and then see if all the atoms in the ArrayList<
-			
-		} while (!consequences.equals(newConsequences));*/
-		return consequences;
+	private ArrayList<atom> bottomUp(ArrayList<definiteClause> DCList) {
+		ArrayList<atom> C = new ArrayList<atom>();
+		ArrayList<atom> headAtoms = new ArrayList<atom>();
+		atom dummyAtom;
+		for (int i = 0; i < this.A.size(); i++) {
+			dummyAtom = this.A.get(i);
+			if (dummyAtom.appearsInHeadOfDC && !headAtoms.contains(dummyAtom)) {
+				headAtoms.add(dummyAtom);
+			}
+		}
 		
-	}
-	
-	private void compileIntoRules(ArrayList<atom> newAtoms, ArrayList<atom> assignedAtoms) {
-		
-		
+		for (int i = 0; i < headAtoms.size(); i++) {
+			nextRule: for (int j = 0; j < DCList.size(); j++) {
+				if (headAtoms.get(i).equals(DCList.get(j).head)) {
+					for(int k = 0; k < DCList.get(j).posAtoms.size(); k++) {
+						if (!C.contains(DCList.get(j).posAtoms.get(k))) {
+							break nextRule;
+						}
+					}
+					if (!C.contains(headAtoms.get(i))) {
+						C.add(headAtoms.get(i));
+					}
+				}
+			}
+		}
+		return C;
 	}
 	
 	private void printAtomLists(boolean printAToo) {

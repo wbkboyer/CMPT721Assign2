@@ -1,35 +1,10 @@
 
 public class atom {
 	public String name;
-	public int truthValue = -1; // Truth value is initially unknown.
-	public int numPosInstances = 0;
-	public int numNegInstances = 0;
 	public boolean appearsInHeadOfDC;
-	public boolean appearsInBodyOfDC;
-	
-	public atom () {
-		this.name = null;
-	}
-	/*
-	 * Initializes the atom object with its name in the program.
-	 */
+
 	public atom (String name) {
 		this.name = name;
-	}
-	
-	/*
-	 * Overloading constructor.
-	 */
-	public atom (String name, int truthValue, boolean appearsInHeadOfDC) {
-		this.name = name;
-
-		/*
-		 * Do I really need truthValue, since the truth value will
-		 * be indicated by the atom's presence in either T_Pi or F_Pi...
-		 */
-		this.truthValue = truthValue;
-		this.appearsInHeadOfDC = appearsInHeadOfDC; // if an atom doesn't appear in the head, by CK, must be false
-		//this.appearsInBodyOfDC = appearsInBodyOfDC;
 	}
 	
 	public String toString() {

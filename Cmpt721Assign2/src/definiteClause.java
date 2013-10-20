@@ -6,6 +6,7 @@ public class definiteClause {
 	atom head;
 	ArrayList posAtoms;
 	ArrayList negAtoms;
+	boolean lookedAt = false;
 	
 	public definiteClause(String tokenString) {
 		String[] tokens = tokenString.trim().split(",");
