@@ -59,6 +59,7 @@ public class wfm {
 		definiteClause clauseToConsider;
 		
 		do {
+			
 			/*
 			 * 1. 	(a) Run the bottom up procedure on those rules that don’t contain a
 			 *	negated atom in the body.
@@ -70,6 +71,7 @@ public class wfm {
 					dummyDCList.add(clauseToConsider);
 				}
 			}
+			
 			Tnew = bottomUp(dummyDCList);// need to ignore all dc's including negative atoms in body
 				
 			/*
@@ -87,7 +89,7 @@ public class wfm {
 				if (Tnew.contains(dummyDCList.get(i).head)) {
 					dummyDCList.remove(i);
 				}
-				else if (dummyDCList.get(i).negAtoms.containsAll(Tnew)) {
+				else {
 					dummyDCList.get(i).negAtoms.removeAll(Tnew);
 				}
 			}
@@ -129,10 +131,9 @@ public class wfm {
 				 *				– remove any occurrences of ~ a from the remaining rules.
 				 */
 				for (int i = 0; i < dummyDCList.size(); i++) {
-					if (Fnew.contains(dummyDCList.get(i).head)) {
+					if (Fnew.contains(dummyDCList.get(i).head) || !arrayListSetDiff(Fnew, dummyDCList.get(i).posAtoms).isEmpty() || !arrayListSetDiff(Fnew, dummyDCList.get(i).negAtoms).isEmpty()) {
 						dummyDCList.remove(i);
 					}
-					dummyDCList.get(i).posAtoms.removeAll(Fnew);
 					dummyDCList.get(i).negAtoms.removeAll(Fnew);
 				}
 				for (int i = 0; i < dummyDCList.size(); i++) {
@@ -182,29 +183,15 @@ public class wfm {
 	 */
 	private ArrayList<atom> bottomUp(ArrayList<definiteClause> DCList) {
 		ArrayList<atom> C = new ArrayList<atom>();
-		ArrayList<atom> headAtoms = new ArrayList<atom>();
-		atom dummyAtom;
-		for (int i = 0; i < this.A.size(); i++) {
-			dummyAtom = this.A.get(i);
-			if (dummyAtom.appearsInHeadOfDC && !headAtoms.contains(dummyAtom)) {
-				headAtoms.add(dummyAtom);
-			}
-		}
-		
-		for (int i = 0; i < headAtoms.size(); i++) {
-			nextRule: for (int j = 0; j < DCList.size(); j++) {
-				if (headAtoms.get(i).equals(DCList.get(j).head)) {
-					for(int k = 0; k < DCList.get(j).posAtoms.size(); k++) {
-						if (!C.contains(DCList.get(j).posAtoms.get(k))) {
-							break nextRule;
-						}
-					}
-					if (!C.contains(headAtoms.get(i))) {
-						C.add(headAtoms.get(i));
-					}
+		ArrayList<atom> Cnew = new ArrayList<atom>();
+		do {
+			addToList(Cnew, C);
+			for (int i = 0; i < DCList.size(); i++) {
+				if (Cnew.containsAll(DCList.get(i).posAtoms) && !C.contains(DCList.get(i).head)) {
+					C.add(DCList.get(i).head);
 				}
 			}
-		}
+		} while (!arrayListSetDiff(Cnew, C).isEmpty());
 		return C;
 	}
 	
