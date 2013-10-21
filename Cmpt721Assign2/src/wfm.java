@@ -61,6 +61,7 @@ public class wfm {
 		do {
 			Tnew = new ArrayList<atom>();
 			Fnew = new ArrayList<atom>();
+			Tposs = new ArrayList<atom>();
 			/*
 			 * 1. 	(a) Run the bottom up procedure on those rules that don’t contain a
 			 *	negated atom in the body.
@@ -88,25 +89,6 @@ public class wfm {
 			 *				– delete any rule with a in the head or \tilde a in the body,
 			 *				– remove any occurrences of a from the remaining rules.
 			 */
-			/*outerloop1: for (int i = 0; i < this.definiteClauseList.size(); i++) {
-				for (int j = 0; j < this.T_Pi.size(); j++) {
-					if (this.definiteClauseList.get(i).head.equals(this.T_Pi.get(j))) {
-						this.definiteClauseList.remove(i);
-						break outerloop1;
-					}
-					else {
-						for (int k = 0; k < this.definiteClauseList.get(i).negAtoms.size(); k++) {
-							if (this.definiteClauseList.get(i).negAtoms.get(k).equals(this.T_Pi.get(j))) {
-								this.definiteClauseList.remove(i);
-								break outerloop1;
-							}
-						}
-					}
-				}
-			}
-			for (int i = 0; i < this.definiteClauseList.size(); i++) {
-				this.definiteClauseList.get(i).posAtoms.removeAll(this.T_Pi);
-			}*/
 			
 			for (int i = 0; i < this.definiteClauseList.size(); i++) {
 				if (Tnew.contains(this.definiteClauseList.get(i).head)) {
@@ -115,7 +97,7 @@ public class wfm {
 				}
 				else {
 					for (int j = 0; j < Tnew.size(); j++) {
-						if (this.definiteClauseList.get(i).negAtoms.contains(this.T_Pi.get(j))) {
+						if (this.definiteClauseList.get(i).negAtoms.contains(Tnew.get(j))) {
 							this.definiteClauseList.remove(i);
 							i--;
 						}
@@ -168,6 +150,24 @@ public class wfm {
 				for (int i = 0; i < this.definiteClauseList.size(); i++) {
 					if (Fnew.contains(this.definiteClauseList.get(i).head)) {
 						this.definiteClauseList.remove(i);
+						i--;
+					}
+					else {
+						for (int j = 0; j < Fnew.size(); j++) {
+							if (this.definiteClauseList.get(i).posAtoms.contains(Fnew.get(j))) {
+								this.definiteClauseList.remove(i);
+								i--;
+							}
+						}
+					}	
+				}
+				for (int i = 0; i < this.definiteClauseList.size(); i++) {
+					this.definiteClauseList.get(i).negAtoms.removeAll(Fnew);
+				}
+				/*
+				for (int i = 0; i < this.definiteClauseList.size(); i++) {
+					if (Fnew.contains(this.definiteClauseList.get(i).head)) {
+						this.definiteClauseList.remove(i);
 						//i--;
 					}
 					else if (!arrayListSetDiff(Fnew, this.definiteClauseList.get(i).posAtoms).isEmpty()){
@@ -177,7 +177,7 @@ public class wfm {
 				}
 				for (int i = 0; i < this.definiteClauseList.size(); i++) {
 					this.definiteClauseList.get(i).negAtoms.removeAll(Fnew);
-				}
+				}*/
 				/*outerloop2: for (int i = 0; i < this.definiteClauseList.size(); i++) {
 					for (int j = 0; j < Fnew.size(); j++) {
 						if (this.definiteClauseList.get(i).head.equals(this.F_Pi.get(j))) {
@@ -199,9 +199,11 @@ public class wfm {
 				}*/
 				
 				System.out.println("definiteClauseList after compiling in Fnew: \n"+this.definiteClauseList);
+
+				System.out.println("Tnew: "+Tnew+ " and Fnew: "+Fnew+ " and Tposs: "+Tposs);
 			}
 			printAtomLists(false);
-		} while (!(arrayListSetDiff(Tnew, this.T_Pi).isEmpty() && arrayListSetDiff(Fnew, this.F_Pi).isEmpty()));
+		} while (!(arrayListSetDiff(Tnew, this.T_Pi).isEmpty() && arrayListSetDiff(Fnew, this.F_Pi).isEmpty()) || !Tposs.isEmpty());
 	}
 
 	/*
