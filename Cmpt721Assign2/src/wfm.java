@@ -36,7 +36,7 @@ public class wfm {
 				}
 			}
 			dummyDC = new definiteClause(scNextLine);
-			dummyDC.printDC();
+			System.out.println(dummyDC);
 			this.definiteClauseList.add(dummyDC);
 			if (!this.A.contains(dummyDC.head)) {
 				this.A.add(dummyDC.head);
@@ -58,11 +58,7 @@ public class wfm {
 		ArrayList<definiteClause> dummyDCList = new ArrayList<definiteClause>();
 		definiteClause clauseToConsider;
 		
-		int numIter = 1;
-		
 		do {
-			//System.out.println ("iteration #" + numIter);
-			//System.out.flush();
 			/*
 			 * 1. 	(a) Run the bottom up procedure on those rules that don’t contain a
 			 *	negated atom in the body.
@@ -75,13 +71,16 @@ public class wfm {
 				}
 			}
 			
-			Tnew = bottomUp2(dummyDCList);// need to ignore all dc's including negative atoms in body
-				
+			System.out.println("dummyDCList before compile: "+dummyDCList);
+			
+			Tnew = bottomUp(dummyDCList);
+			System.out.println("Tnew: "+Tnew);
 			/*
 			 * 		(c) Add these atoms to T.
 			 */
-			addToList (Tnew, this.T_Pi);
-			
+			System.out.println("this.T_Pi old: "+this.T_Pi);
+			addToList(Tnew, this.T_Pi);
+			System.out.println("this.T_Pi new: "+this.T_Pi);
 			/*
 			 * 		(d) “Compile” the atoms in T^{new} into the set of rules:
 			 *			For a \in T^{new} ,
@@ -102,7 +101,14 @@ public class wfm {
 				}
 			}
 			
-			if (!definiteClauseList.isEmpty()) {
+			System.out.println("dummyDCList after Compile: "+dummyDCList);
+			
+			/*
+			 * is dummyDCList the listof rules that I'm supposed to be referring to?? or should I start over using the original this.definiteClauseList?
+			 * Because how can i use the old rules
+			 */
+			if (!dummyDCList.isEmpty()) {
+				System.out.println("dummyDCList nonempty");
 				/*
 				 * 2. 	(a) Run the bottom up procedure on the rule set, but ignoring all negated
 				 *	atoms.
@@ -111,6 +117,7 @@ public class wfm {
 				for (int i = 0; i < dummyDCList.size(); i++) {
 					dummyDCList.get(i).negAtoms = new ArrayList<atom>();
 				}
+				System.out.println("dummyDCList after ignoring negative atoms: "+dummyDCList);
 				Tposs = bottomUp(dummyDCList);
 				
 				/*
@@ -137,7 +144,9 @@ public class wfm {
 					if (Fnew.contains(dummyDCList.get(i).head) || !arrayListSetDiff(Fnew, dummyDCList.get(i).posAtoms).isEmpty() || !arrayListSetDiff(Fnew, dummyDCList.get(i).negAtoms).isEmpty()) {
 						dummyDCList.remove(i);
 					}
-					dummyDCList.get(i).negAtoms.removeAll(Fnew);
+					else {
+						dummyDCList.get(i).negAtoms.removeAll(Fnew);
+					}
 				}
 				for (int i = 0; i < dummyDCList.size(); i++) {
 					for (int j = 0; j < Fnew.size(); j++) {
@@ -146,47 +155,7 @@ public class wfm {
 				}
 			}
 			printAtomLists(false);
-			//System.out.println("Tnew = "+Tnew + " and Fnew = "+ Fnew);
-			//System.out.flush();
 		} while (!(arrayListSetDiff(Tnew, this.T_Pi).isEmpty() && arrayListSetDiff(Fnew, this.F_Pi).isEmpty()));
-	}
-	
-	private ArrayList<atom> arrayListSetDiff(ArrayList<atom> A, ArrayList<atom> B) {
-		ArrayList<atom> setDiff = new ArrayList<atom>();
-		for (int i = 0; i < B.size(); i++) {
-			if (A.contains(B.get(i))) {
-				continue;
-			}
-			else {
-				if (setDiff.contains(B.get(i))) continue;
-				else setDiff.add(B.get(i));
-			}
-		}
-		return setDiff;
-	}
-	
-	private ArrayList<atom> arrayListSetDiff2(ArrayList<atom> A, ArrayList<atom> B) {
-		ArrayList<atom> setDiff = new ArrayList<atom>();
-		for (int i = 0; i < B.size(); i++) {
-			if (A.contains(B.get(i))) {
-				continue;
-			}
-			else {
-				if (setDiff.contains(B.get(i))) continue;
-				else setDiff.add(B.get(i));
-			}
-		}
-		return setDiff;
-	}
-	
-	private void addToList(ArrayList<atom> listOfAtomsToAdd, ArrayList<atom> existingAtomList) {
-		atom dummyAtom = new atom(null);
-		for (int i = 0; i < listOfAtomsToAdd.size(); i++) {
-			dummyAtom = listOfAtomsToAdd.get(i);
-			if (!existingAtomList.contains(dummyAtom)) {
-				existingAtomList.add(dummyAtom);
-			}
-		}
 	}
 
 	/*
@@ -199,6 +168,7 @@ public class wfm {
 	 * 				C := C \cup {h}
 	 * until no more choices
 	 */
+
 	private ArrayList<atom> bottomUp(ArrayList<definiteClause> A) { // maybe create A' = A and then delete rules from A'  to make less runs
 		ArrayList<atom> C = new ArrayList<atom>();
 		ArrayList<atom> Cnew = new ArrayList<atom>();
@@ -210,25 +180,27 @@ public class wfm {
 					Cnew.add(A.get(i).head);
 				}
 			}
-		} while (!arrayListSetDiff2(Cnew, C).isEmpty());
+		} while (!arrayListSetDiff(Cnew, C).isEmpty());
 		return C;
 	}
-	private ArrayList<atom> bottomUp2(ArrayList<definiteClause> A) { // maybe create A' = A and then delete rules from A'  to make less runs
-		ArrayList<atom> C = new ArrayList<atom>();
-		ArrayList<atom> Cnew = new ArrayList<atom>();
-		do {
-			System.out.println("Top of Do while");
-			addToList(Cnew, C);
-			Cnew = new ArrayList<atom>();
-			for (int i = 0; i < A.size(); i++) {
-				if ((A.get(i).posAtoms.isEmpty() || C.containsAll(A.get(i).posAtoms)) && !C.contains(A.get(i).head)) {
-					Cnew.add(A.get(i).head);
-				}
+	
+	private ArrayList<atom> arrayListSetDiff(ArrayList<atom> A, ArrayList<atom> B) {
+		ArrayList<atom> setDiff = new ArrayList<atom>();
+		setDiff.addAll(A);
+		for (int i = 0; i < B.size(); i++) {
+			setDiff.remove(B.get(i));
+		}
+		return setDiff;
+	}
+	
+	private void addToList(ArrayList<atom> listOfAtomsToAdd, ArrayList<atom> existingAtomList) {
+		atom dummyAtom = new atom(null);
+		for (int i = 0; i < listOfAtomsToAdd.size(); i++) {
+			dummyAtom = listOfAtomsToAdd.get(i);
+			if (!existingAtomList.contains(dummyAtom)) {
+				existingAtomList.add(dummyAtom);
 			}
-			System.out.println("Bottom of Loop - C:"+C+" Cnew:"+Cnew);
-		} while (!arrayListSetDiff2(Cnew, C).isEmpty());
-		System.out.println("Done Bottom up");
-		return C;
+		}
 	}
 	
 	private void printAtomLists(boolean printAToo) {
@@ -254,7 +226,8 @@ public class wfm {
 			System.out.println(e.getMessage());
 		}
 		catch (Exception e) {
-			System.out.println(e.getMessage());
+			System.out.println("General Exception: ");
+			e.printStackTrace();
 		}
 	}
 }

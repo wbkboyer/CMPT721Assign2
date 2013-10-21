@@ -32,8 +32,8 @@ public class definiteClause {
 		}
 		return atomGroup;
 	}
-	
-	public void printDC() {
-		System.out.println("[" + this.head + ", " + this.posAtoms + " , " + this.negAtoms + "]");
+	@Override
+	public String toString() {
+		return "[" + this.head + ", " + this.posAtoms + " , " + this.negAtoms + "]";
 	}
 }
