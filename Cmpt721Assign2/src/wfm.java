@@ -58,8 +58,11 @@ public class wfm {
 		ArrayList<definiteClause> dummyDCList = new ArrayList<definiteClause>();
 		definiteClause clauseToConsider;
 		
+		int numIter = 1;
+		
 		do {
-			
+			//System.out.println ("iteration #" + numIter);
+			//System.out.flush();
 			/*
 			 * 1. 	(a) Run the bottom up procedure on those rules that don’t contain a
 			 *	negated atom in the body.
@@ -72,7 +75,7 @@ public class wfm {
 				}
 			}
 			
-			Tnew = bottomUp(dummyDCList);// need to ignore all dc's including negative atoms in body
+			Tnew = bottomUp2(dummyDCList);// need to ignore all dc's including negative atoms in body
 				
 			/*
 			 * 		(c) Add these atoms to T.
@@ -143,11 +146,26 @@ public class wfm {
 				}
 			}
 			printAtomLists(false);
+			//System.out.println("Tnew = "+Tnew + " and Fnew = "+ Fnew);
+			//System.out.flush();
 		} while (!(arrayListSetDiff(Tnew, this.T_Pi).isEmpty() && arrayListSetDiff(Fnew, this.F_Pi).isEmpty()));
 	}
 	
-	
 	private ArrayList<atom> arrayListSetDiff(ArrayList<atom> A, ArrayList<atom> B) {
+		ArrayList<atom> setDiff = new ArrayList<atom>();
+		for (int i = 0; i < B.size(); i++) {
+			if (A.contains(B.get(i))) {
+				continue;
+			}
+			else {
+				if (setDiff.contains(B.get(i))) continue;
+				else setDiff.add(B.get(i));
+			}
+		}
+		return setDiff;
+	}
+	
+	private ArrayList<atom> arrayListSetDiff2(ArrayList<atom> A, ArrayList<atom> B) {
 		ArrayList<atom> setDiff = new ArrayList<atom>();
 		for (int i = 0; i < B.size(); i++) {
 			if (A.contains(B.get(i))) {
@@ -174,24 +192,42 @@ public class wfm {
 	/*
 	 * C := {};
 	 * repeat
-	 * 		choose r \in A (the set of rules) such that
-	 * 			r is 'h \Leftarrow b_1 \wedge \ldots \wedge b_m
+	 * 		choose all r \in A (the set of rules) such that
+	 * 			r is a rule of the form 'h \Leftarrow b_1 \wedge \ldots \wedge b_m'
 	 * 			b_i \in C for all i, and
 	 * 			h \neg \in C;
-	 * 		C := C \cup {h}
+	 * 				C := C \cup {h}
 	 * until no more choices
 	 */
-	private ArrayList<atom> bottomUp(ArrayList<definiteClause> DCList) {
+	private ArrayList<atom> bottomUp(ArrayList<definiteClause> A) { // maybe create A' = A and then delete rules from A'  to make less runs
 		ArrayList<atom> C = new ArrayList<atom>();
 		ArrayList<atom> Cnew = new ArrayList<atom>();
 		do {
 			addToList(Cnew, C);
-			for (int i = 0; i < DCList.size(); i++) {
-				if (Cnew.containsAll(DCList.get(i).posAtoms) && !C.contains(DCList.get(i).head)) {
-					C.add(DCList.get(i).head);
+			Cnew = new ArrayList<atom>();
+			for (int i = 0; i < A.size(); i++) {
+				if ((A.get(i).posAtoms.isEmpty() || C.containsAll(A.get(i).posAtoms)) && !C.contains(A.get(i).head)) {
+					Cnew.add(A.get(i).head);
 				}
 			}
-		} while (!arrayListSetDiff(Cnew, C).isEmpty());
+		} while (!arrayListSetDiff2(Cnew, C).isEmpty());
+		return C;
+	}
+	private ArrayList<atom> bottomUp2(ArrayList<definiteClause> A) { // maybe create A' = A and then delete rules from A'  to make less runs
+		ArrayList<atom> C = new ArrayList<atom>();
+		ArrayList<atom> Cnew = new ArrayList<atom>();
+		do {
+			System.out.println("Top of Do while");
+			addToList(Cnew, C);
+			Cnew = new ArrayList<atom>();
+			for (int i = 0; i < A.size(); i++) {
+				if ((A.get(i).posAtoms.isEmpty() || C.containsAll(A.get(i).posAtoms)) && !C.contains(A.get(i).head)) {
+					Cnew.add(A.get(i).head);
+				}
+			}
+			System.out.println("Bottom of Loop - C:"+C+" Cnew:"+Cnew);
+		} while (!arrayListSetDiff2(Cnew, C).isEmpty());
+		System.out.println("Done Bottom up");
 		return C;
 	}
 	
@@ -209,11 +245,15 @@ public class wfm {
 			program.readProblem(sc);
 			program.printAtomLists(true);
 			program.solve();
+			System.out.println ("All done!");
 		} 
 		catch (FileNotFoundException e) {
 			System.out.println("File '"+args[0]+"' not found!");
 		}
 		catch (IncorrectInputException e) {
+			System.out.println(e.getMessage());
+		}
+		catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
 	}
