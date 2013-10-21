@@ -52,13 +52,15 @@ public class wfm {
 		 * 	Loop until there are no changes to T or F:		
 		 */
 		ArrayList<atom> Tnew;
-		ArrayList<atom> Fnew = new ArrayList<atom>();
+		ArrayList<atom> Fnew;
 		ArrayList<atom> Tposs;
 		ArrayList<atom> union = new ArrayList<atom>();
 		ArrayList<definiteClause> dummyDCList = new ArrayList<definiteClause>();
 		definiteClause clauseToConsider;
 		
 		do {
+			Tnew = new ArrayList<atom>();
+			Fnew = new ArrayList<atom>();
 			/*
 			 * 1. 	(a) Run the bottom up procedure on those rules that don’t contain a
 			 *	negated atom in the body.
@@ -71,68 +73,91 @@ public class wfm {
 				}
 			}
 			
-			System.out.println("dummyDCList before compile: "+dummyDCList);
+			System.out.println("dummyDCList before compile: \n"+dummyDCList);
 			
 			Tnew = bottomUp(dummyDCList);
 			System.out.println("Tnew: "+Tnew);
 			/*
 			 * 		(c) Add these atoms to T.
 			 */
-			System.out.println("this.T_Pi old: "+this.T_Pi);
 			addToList(Tnew, this.T_Pi);
-			System.out.println("this.T_Pi new: "+this.T_Pi);
+			
 			/*
 			 * 		(d) “Compile” the atoms in T^{new} into the set of rules:
 			 *			For a \in T^{new} ,
 			 *				– delete any rule with a in the head or \tilde a in the body,
 			 *				– remove any occurrences of a from the remaining rules.
 			 */
-			for (int i = 0; i < dummyDCList.size(); i++) {
-				if (Tnew.contains(dummyDCList.get(i).head)) {
-					dummyDCList.remove(i);
+			/*outerloop1: for (int i = 0; i < this.definiteClauseList.size(); i++) {
+				for (int j = 0; j < this.T_Pi.size(); j++) {
+					if (this.definiteClauseList.get(i).head.equals(this.T_Pi.get(j))) {
+						this.definiteClauseList.remove(i);
+						break outerloop1;
+					}
+					else {
+						for (int k = 0; k < this.definiteClauseList.get(i).negAtoms.size(); k++) {
+							if (this.definiteClauseList.get(i).negAtoms.get(k).equals(this.T_Pi.get(j))) {
+								this.definiteClauseList.remove(i);
+								break outerloop1;
+							}
+						}
+					}
+				}
+			}
+			for (int i = 0; i < this.definiteClauseList.size(); i++) {
+				this.definiteClauseList.get(i).posAtoms.removeAll(this.T_Pi);
+			}*/
+			
+			for (int i = 0; i < this.definiteClauseList.size(); i++) {
+				if (Tnew.contains(this.definiteClauseList.get(i).head)) {
+					this.definiteClauseList.remove(i);
+					i--;
 				}
 				else {
-					dummyDCList.get(i).negAtoms.removeAll(Tnew);
-				}
+					for (int j = 0; j < Tnew.size(); j++) {
+						if (this.definiteClauseList.get(i).negAtoms.contains(this.T_Pi.get(j))) {
+							this.definiteClauseList.remove(i);
+							i--;
+						}
+					}
+				}	
 			}
-			for (int i = 0; i < dummyDCList.size(); i++) {
-				for (int j = 0; j < Tnew.size(); j++) {
-					dummyDCList.get(i).posAtoms.remove(Tnew.get(j));
-				}
+			for (int i = 0; i < this.definiteClauseList.size(); i++) {
+				this.definiteClauseList.get(i).posAtoms.removeAll(Tnew);
 			}
 			
-			System.out.println("dummyDCList after Compile: "+dummyDCList);
+			System.out.println("Recall the rule list: \n "+this.definiteClauseList);
 			
-			/*
-			 * is dummyDCList the listof rules that I'm supposed to be referring to?? or should I start over using the original this.definiteClauseList?
-			 * Because how can i use the old rules
-			 */
-			if (!dummyDCList.isEmpty()) {
-				System.out.println("dummyDCList nonempty");
+			if (!this.definiteClauseList.isEmpty()) {
 				/*
 				 * 2. 	(a) Run the bottom up procedure on the rule set, but ignoring all negated
 				 *	atoms.
 				 *		(b) Call this set T^{poss}. (These atoms might potentially become true later.)
 				 */
-				for (int i = 0; i < dummyDCList.size(); i++) {
-					dummyDCList.get(i).negAtoms = new ArrayList<atom>();
+				for (int i = 0; i < this.definiteClauseList.size(); i++) {
+					this.definiteClauseList.get(i).negAtoms = new ArrayList<atom>();
 				}
-				System.out.println("dummyDCList after ignoring negative atoms: "+dummyDCList);
-				Tposs = bottomUp(dummyDCList);
-				
+				System.out.println("definiteClauseList after ignoring negative atoms: \n"+this.definiteClauseList);
+				Tposs = bottomUp(this.definiteClauseList);
+
+				System.out.println("Tposs is: "+Tposs);
 				/*
 				 * 		(c) Let F^{new} be those atoms whose truth value is “unknown” and that don’t
 				 *			appear in T^{poss}. (The atoms in F^{new} are those that cannot possibly be
 				 *			true, and so are (now) known to be false.)
 				 */
-				union.addAll(Tnew);
-				union.addAll(Tposs);
+				addToList(Tnew, union);
+				addToList(Tposs, union);
+				System.out.println("Tnew is: "+Tnew);
+				System.out.println("union of Tnew and Tposs is: "+union);
 				Fnew = arrayListSetDiff(this.A, union);
+				System.out.println("Fnew is: "+Fnew);
 				
 				/*
 				 * 		(d) Add the atoms in F^{new} to F.
 				 */
 				addToList(Fnew, this.F_Pi);
+				System.out.println("F_Pi is: "+this.F_Pi);
 				
 				/*
 				 * 		(e) “Compile” the atoms in F^{new} into the set of rules:
@@ -140,19 +165,40 @@ public class wfm {
 				 *				– delete any rule with a in the head or a in the body,
 				 *				– remove any occurrences of ~ a from the remaining rules.
 				 */
-				for (int i = 0; i < dummyDCList.size(); i++) {
-					if (Fnew.contains(dummyDCList.get(i).head) || !arrayListSetDiff(Fnew, dummyDCList.get(i).posAtoms).isEmpty() || !arrayListSetDiff(Fnew, dummyDCList.get(i).negAtoms).isEmpty()) {
-						dummyDCList.remove(i);
+				for (int i = 0; i < this.definiteClauseList.size(); i++) {
+					if (Fnew.contains(this.definiteClauseList.get(i).head)) {
+						this.definiteClauseList.remove(i);
+						//i--;
 					}
-					else {
-						dummyDCList.get(i).negAtoms.removeAll(Fnew);
-					}
+					else if (!arrayListSetDiff(Fnew, this.definiteClauseList.get(i).posAtoms).isEmpty()){
+						this.definiteClauseList.remove(i);
+						//i--;
+					}	
 				}
-				for (int i = 0; i < dummyDCList.size(); i++) {
+				for (int i = 0; i < this.definiteClauseList.size(); i++) {
+					this.definiteClauseList.get(i).negAtoms.removeAll(Fnew);
+				}
+				/*outerloop2: for (int i = 0; i < this.definiteClauseList.size(); i++) {
 					for (int j = 0; j < Fnew.size(); j++) {
-						dummyDCList.get(i).posAtoms.remove(Fnew.get(j));
+						if (this.definiteClauseList.get(i).head.equals(this.F_Pi.get(j))) {
+							this.definiteClauseList.remove(i);
+							break outerloop2;
+						}
+						else {
+							for (int k = 0; k < this.definiteClauseList.get(i).negAtoms.size(); k++) {
+								if (this.definiteClauseList.get(i).negAtoms.get(k).equals(this.F_Pi.get(j))) {
+									this.definiteClauseList.remove(i);
+									break outerloop2;
+								}
+							}
+						}
 					}
 				}
+				for (int i = 0; i < this.definiteClauseList.size(); i++) {
+					this.definiteClauseList.get(i).posAtoms.removeAll(this.F_Pi);
+				}*/
+				
+				System.out.println("definiteClauseList after compiling in Fnew: \n"+this.definiteClauseList);
 			}
 			printAtomLists(false);
 		} while (!(arrayListSetDiff(Tnew, this.T_Pi).isEmpty() && arrayListSetDiff(Fnew, this.F_Pi).isEmpty()));
@@ -217,7 +263,8 @@ public class wfm {
 			program.readProblem(sc);
 			program.printAtomLists(true);
 			program.solve();
-			System.out.println ("All done!");
+			System.out.println("Final Result:");
+			program.printAtomLists(false);
 		} 
 		catch (FileNotFoundException e) {
 			System.out.println("File '"+args[0]+"' not found!");

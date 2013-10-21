@@ -34,6 +34,6 @@ public class definiteClause {
 	}
 	@Override
 	public String toString() {
-		return "[" + this.head + ", " + this.posAtoms + " , " + this.negAtoms + "]";
+		return "[" + this.head + ", " + this.posAtoms + " , " + this.negAtoms + "]\n";
 	}
 }
