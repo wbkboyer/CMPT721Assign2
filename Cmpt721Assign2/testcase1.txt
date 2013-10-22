@@ -1,10 +1,9 @@
-[a, [b1, b2], [c, c10]] # i.e. a <= b1, b2, not c, not c10
-[h, [a, b, c], []] # i.e. h <= a, b, c
-[g, [], [e, f]] # i.e. g <= not e, not f
-[f, [], []] # i.e. f
-
-
-
-
-
-
+p , q , r
+p , s , EMPTY
+q , u , EMPTY
+u , EMPTY , s
+r , EMPTY , t
+t , EMPTY , EMPTY
+s , w , EMPTY
+n , m , EMPTY
+m , n , EMPTY

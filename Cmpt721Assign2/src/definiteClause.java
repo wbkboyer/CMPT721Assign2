@@ -1,12 +1,15 @@
 import java.util.ArrayList;
-import java.util.Set;
 
-public class definiteClause {
-	private static final String EMPTY = null;
+public class definiteClause implements Cloneable{
 	atom head;
-	ArrayList posAtoms;
-	ArrayList negAtoms;
+	ArrayList<atom> posAtoms;
+	ArrayList<atom> negAtoms;
 	boolean lookedAt = false;
+	
+	  public Object clone() throws CloneNotSupportedException {
+		  definiteClause clone = (definiteClause)super.clone();
+	        return clone;
+	    }
 	
 	public definiteClause(String tokenString) {
 		String[] tokens = tokenString.trim().split(",");

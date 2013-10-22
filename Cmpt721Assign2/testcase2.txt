@@ -1,0 +1,6 @@
+a, EMPTY, EMPTY
+c, a , b
+b, EMPTY , c
+e , EMPTY, d
+f , e , EMPTY
+f, EMPTY , a

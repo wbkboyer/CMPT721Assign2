@@ -1,10 +1,12 @@
+/*
+ *	CMPT 721 Assignment 2 - README
+ *		Wanda B. Boyer
+ *	Student number 301242166
+ */
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Scanner;
-
 
 public class wfm {
 	public ArrayList<atom> T_Pi;
@@ -19,12 +21,11 @@ public class wfm {
 		F_Pi = new ArrayList<atom>();
 		definiteClauseList = new ArrayList<definiteClause>();
 	}
-		
+	
 	private void readProblem(Scanner sc) throws IncorrectInputException {
-		String scNextLine;
-		String[] tokens;		
+		String scNextLine;		
 		definiteClause dummyDC;
-		System.out.println("Input Problem:");
+		
 		while (sc.hasNext()) {
 			scNextLine = sc.nextLine();
 			if (scNextLine.contains("#")){
@@ -36,7 +37,6 @@ public class wfm {
 				}
 			}
 			dummyDC = new definiteClause(scNextLine);
-			System.out.println(dummyDC);
 			this.definiteClauseList.add(dummyDC);
 			if (!this.A.contains(dummyDC.head)) {
 				this.A.add(dummyDC.head);
@@ -44,7 +44,6 @@ public class wfm {
 			addToList(dummyDC.posAtoms, this.A);
 			addToList(dummyDC.negAtoms, this.A);
 		}
-		System.out.println();
 	}
 	
 	private void solve() {
@@ -53,14 +52,16 @@ public class wfm {
 		 */
 		ArrayList<atom> Tnew;
 		ArrayList<atom> Fnew;
-		ArrayList<atom> Tposs;
+		ArrayList<atom> Tposs = new ArrayList<atom>();
+		ArrayList<atom> TpossOld;
 		ArrayList<atom> union = new ArrayList<atom>();
-		ArrayList<definiteClause> dummyDCList = new ArrayList<definiteClause>();
+		ArrayList<definiteClause> dummyDCList;
 		definiteClause clauseToConsider;
-		
 		do {
+			dummyDCList = new ArrayList<definiteClause>();
 			Tnew = new ArrayList<atom>();
 			Fnew = new ArrayList<atom>();
+			TpossOld = Tposs;
 			Tposs = new ArrayList<atom>();
 			/*
 			 * 1. 	(a) Run the bottom up procedure on those rules that don’t contain a
@@ -73,18 +74,16 @@ public class wfm {
 					dummyDCList.add(clauseToConsider);
 				}
 			}
-			
-			System.out.println("dummyDCList before compile: \n"+dummyDCList);
-			
-			Tnew = bottomUp(dummyDCList);
-			System.out.println("Tnew: "+Tnew);
+			System.out.println("definite clause list considered when deriving Tnew :\n "+dummyDCList);
+			Tnew = arrayListSetDiff(bottomUp(dummyDCList), this.T_Pi);
+			System.out.println("Tnew: "+Tnew+"\n");
 			/*
 			 * 		(c) Add these atoms to T.
 			 */
 			addToList(Tnew, this.T_Pi);
 			
 			/*
-			 * 		(d) “Compile” the atoms in T^{new} into the set of rules:
+			 * 		(d) "Compile" the atoms in T^{new} into the set of rules:
 			 *			For a \in T^{new} ,
 			 *				– delete any rule with a in the head or \tilde a in the body,
 			 *				– remove any occurrences of a from the remaining rules.
@@ -107,42 +106,44 @@ public class wfm {
 			for (int i = 0; i < this.definiteClauseList.size(); i++) {
 				this.definiteClauseList.get(i).posAtoms.removeAll(Tnew);
 			}
-			
-			System.out.println("Recall the rule list: \n "+this.definiteClauseList);
-			
+			System.out.println("definite clause list after compiling in Tnew:\n "+this.definiteClauseList);
 			if (!this.definiteClauseList.isEmpty()) {
 				/*
 				 * 2. 	(a) Run the bottom up procedure on the rule set, but ignoring all negated
 				 *	atoms.
 				 *		(b) Call this set T^{poss}. (These atoms might potentially become true later.)
 				 */
-				for (int i = 0; i < this.definiteClauseList.size(); i++) {
-					this.definiteClauseList.get(i).negAtoms = new ArrayList<atom>();
+				System.out.println("definite clause list used to compute Tafasf:\n "+this.definiteClauseList);
+				dummyDCList = new ArrayList<definiteClause>();
+				for(int i = 0; i < this.definiteClauseList.size(); i++) {
+					try {
+						dummyDCList.add(i, (definiteClause) (this.definiteClauseList.get(i).clone()));
+					} catch (CloneNotSupportedException e) {
+						e.printStackTrace();
+					}
 				}
-				System.out.println("definiteClauseList after ignoring negative atoms: \n"+this.definiteClauseList);
-				Tposs = bottomUp(this.definiteClauseList);
-
-				System.out.println("Tposs is: "+Tposs);
+				for (int i = 0; i < dummyDCList.size(); i++) {
+					dummyDCList.get(i).negAtoms = new ArrayList<atom>();
+				}
+				System.out.println("definite clause list used to compute Tpossasf:\n "+this.definiteClauseList);
+				Tposs = arrayListSetDiff(bottomUp(dummyDCList), Tnew);
+				System.out.println("Tposs: "+Tposs+ "\n");
 				/*
-				 * 		(c) Let F^{new} be those atoms whose truth value is “unknown” and that don’t
+				 * 		(c) Let F^{new} be those atoms whose truth value is "unknown" and that don’t
 				 *			appear in T^{poss}. (The atoms in F^{new} are those that cannot possibly be
 				 *			true, and so are (now) known to be false.)
 				 */
 				addToList(Tnew, union);
 				addToList(Tposs, union);
-				System.out.println("Tnew is: "+Tnew);
-				System.out.println("union of Tnew and Tposs is: "+union);
 				Fnew = arrayListSetDiff(this.A, union);
-				System.out.println("Fnew is: "+Fnew);
-				
+				System.out.println("Fnew: "+Fnew+"\n");
 				/*
 				 * 		(d) Add the atoms in F^{new} to F.
 				 */
 				addToList(Fnew, this.F_Pi);
-				System.out.println("F_Pi is: "+this.F_Pi);
 				
 				/*
-				 * 		(e) “Compile” the atoms in F^{new} into the set of rules:
+				 * 		(e) "Compile" the atoms in F^{new} into the set of rules:
 				 *			For a \in F^{new},
 				 *				– delete any rule with a in the head or a in the body,
 				 *				– remove any occurrences of ~ a from the remaining rules.
@@ -164,46 +165,11 @@ public class wfm {
 				for (int i = 0; i < this.definiteClauseList.size(); i++) {
 					this.definiteClauseList.get(i).negAtoms.removeAll(Fnew);
 				}
-				/*
-				for (int i = 0; i < this.definiteClauseList.size(); i++) {
-					if (Fnew.contains(this.definiteClauseList.get(i).head)) {
-						this.definiteClauseList.remove(i);
-						//i--;
-					}
-					else if (!arrayListSetDiff(Fnew, this.definiteClauseList.get(i).posAtoms).isEmpty()){
-						this.definiteClauseList.remove(i);
-						//i--;
-					}	
-				}
-				for (int i = 0; i < this.definiteClauseList.size(); i++) {
-					this.definiteClauseList.get(i).negAtoms.removeAll(Fnew);
-				}*/
-				/*outerloop2: for (int i = 0; i < this.definiteClauseList.size(); i++) {
-					for (int j = 0; j < Fnew.size(); j++) {
-						if (this.definiteClauseList.get(i).head.equals(this.F_Pi.get(j))) {
-							this.definiteClauseList.remove(i);
-							break outerloop2;
-						}
-						else {
-							for (int k = 0; k < this.definiteClauseList.get(i).negAtoms.size(); k++) {
-								if (this.definiteClauseList.get(i).negAtoms.get(k).equals(this.F_Pi.get(j))) {
-									this.definiteClauseList.remove(i);
-									break outerloop2;
-								}
-							}
-						}
-					}
-				}
-				for (int i = 0; i < this.definiteClauseList.size(); i++) {
-					this.definiteClauseList.get(i).posAtoms.removeAll(this.F_Pi);
-				}*/
-				
-				System.out.println("definiteClauseList after compiling in Fnew: \n"+this.definiteClauseList);
-
-				System.out.println("Tnew: "+Tnew+ " and Fnew: "+Fnew+ " and Tposs: "+Tposs);
+				System.out.println("definite clause list after compiling in Fnew:\n "+this.definiteClauseList);
 			}
 			printAtomLists(false);
-		} while (!(arrayListSetDiff(Tnew, this.T_Pi).isEmpty() && arrayListSetDiff(Fnew, this.F_Pi).isEmpty()) || !Tposs.isEmpty());
+			System.out.println("---------------");
+		} while (!(Tnew.isEmpty() || Fnew.isEmpty() || this.definiteClauseList.isEmpty()));
 	}
 
 	/*
@@ -217,7 +183,7 @@ public class wfm {
 	 * until no more choices
 	 */
 
-	private ArrayList<atom> bottomUp(ArrayList<definiteClause> A) { // maybe create A' = A and then delete rules from A'  to make less runs
+	private ArrayList<atom> bottomUp(ArrayList<definiteClause> A) {
 		ArrayList<atom> C = new ArrayList<atom>();
 		ArrayList<atom> Cnew = new ArrayList<atom>();
 		do {
@@ -251,11 +217,13 @@ public class wfm {
 		}
 	}
 	
-	private void printAtomLists(boolean printAToo) {
-		if (printAToo){
-			System.out.println("A: "+ this.A);
+	private void printAtomLists(boolean printAInstead) {
+		if (printAInstead){
+			System.out.println("A: "+ this.A+"\n");
 		}
-		System.out.println("T_Pi: "+ this.T_Pi+ ", F_Pi: "+ this.F_Pi + "\n");
+		else{
+			System.out.println("T_Pi: "+ this.T_Pi+ ", F_Pi: "+ this.F_Pi + "\n");
+		}
 	}
 	
 	public static void main (String[] args){ 		

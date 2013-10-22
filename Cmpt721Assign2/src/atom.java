@@ -7,6 +7,10 @@ public class atom {
 		this.name = name;
 	}
 	
+	public atom() {
+		this.name = null;
+	}
+
 	public String toString() {
 		return this.name;
 	}
