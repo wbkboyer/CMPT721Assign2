@@ -25,7 +25,7 @@ m , n , EMPTY
 
 Where the head of a definite clause is in the first index, followed by a
 space, a comma, and a space. Then, the list of positive atoms is separated
-spaces; after the final atom of the list of positive atoms, there is another
+by spaces; after the final atom of the list of positive atoms, there is another
 space, and then a comma, after which the list of negative atoms is given
 in the same form as the positive atoms.
  
@@ -34,5 +34,18 @@ of my input, to which he responded:
 	"Don't worry so much about the input format, so long
 	as it's thoroughly described and you provide the test
 	files to the TA.")
+	
+4) Files included in this submission:
 
+	  i) wfm.java
+	 ii) definiteClause.java
+	iii) atom.java
+	 iv) testcase1.txt
+	  v) testcase2.txt
+	 vi) testcase3.txt
+	vii) README.txt (Self reference abounds!)
+
+Thanks for reading!
+	
+	Wanda
 

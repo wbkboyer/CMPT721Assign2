@@ -1,3 +1,9 @@
+/*
+ *	CMPT 721 Assignment 2 - definiteClause.java
+ *		Wanda B. Boyer
+ *	Student number 301242166
+ */
+
 import java.util.ArrayList;
 
 public class definiteClause implements Cloneable{

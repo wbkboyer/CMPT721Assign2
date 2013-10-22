@@ -1,5 +1,5 @@
 /*
- *	CMPT 721 Assignment 2 - README
+ *	CMPT 721 Assignment 2 - wfm.java
  *		Wanda B. Boyer
  *	Student number 301242166
  */
@@ -113,7 +113,6 @@ public class wfm {
 				 *	atoms.
 				 *		(b) Call this set T^{poss}. (These atoms might potentially become true later.)
 				 */
-				System.out.println("definite clause list used to compute Tafasf:\n "+this.definiteClauseList);
 				dummyDCList = new ArrayList<definiteClause>();
 				for(int i = 0; i < this.definiteClauseList.size(); i++) {
 					try {
@@ -125,7 +124,7 @@ public class wfm {
 				for (int i = 0; i < dummyDCList.size(); i++) {
 					dummyDCList.get(i).negAtoms = new ArrayList<atom>();
 				}
-				System.out.println("definite clause list used to compute Tpossasf:\n "+this.definiteClauseList);
+				System.out.println("definite clause list used to compute Tposs:\n "+dummyDCList);
 				Tposs = arrayListSetDiff(bottomUp(dummyDCList), Tnew);
 				System.out.println("Tposs: "+Tposs+ "\n");
 				/*
@@ -167,8 +166,9 @@ public class wfm {
 				}
 				System.out.println("definite clause list after compiling in Fnew:\n "+this.definiteClauseList);
 			}
-			printAtomLists(false);
 			System.out.println("---------------");
+			printAtomLists(false);
+			System.out.println("---------------\n\n");
 		} while (!(Tnew.isEmpty() || Fnew.isEmpty() || this.definiteClauseList.isEmpty()));
 	}
 
@@ -182,7 +182,6 @@ public class wfm {
 	 * 				C := C \cup {h}
 	 * until no more choices
 	 */
-
 	private ArrayList<atom> bottomUp(ArrayList<definiteClause> A) {
 		ArrayList<atom> C = new ArrayList<atom>();
 		ArrayList<atom> Cnew = new ArrayList<atom>();
@@ -222,7 +221,7 @@ public class wfm {
 			System.out.println("A: "+ this.A+"\n");
 		}
 		else{
-			System.out.println("T_Pi: "+ this.T_Pi+ ", F_Pi: "+ this.F_Pi + "\n");
+			System.out.println("T_Pi: "+ this.T_Pi+ ", F_Pi: "+ this.F_Pi);
 		}
 	}
 	

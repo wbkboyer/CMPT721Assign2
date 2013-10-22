@@ -1,14 +1,14 @@
-
+/*
+ *	CMPT 721 Assignment 2 - atom.java
+ *		Wanda B. Boyer
+ *	Student number 301242166
+ */
 public class atom {
 	public String name;
 	public boolean appearsInHeadOfDC;
 
 	public atom (String name) {
 		this.name = name;
-	}
-	
-	public atom() {
-		this.name = null;
 	}
 
 	public String toString() {
